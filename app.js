@@ -48,6 +48,12 @@
   $("titulo").textContent = G.titulo;
   $("subtitulo").textContent = G.subtitulo;
   $("link-fonte").href = G.fonteUrl;
+  // Botão "Avaliar o guia": só aparece se houver um link seguro (https) de formulário configurado.
+  if (/^https:\/\/(docs\.google\.com\/forms|forms\.gle)\//.test(G.avaliacaoUrl || "")) {
+    const bt = $("btn-avaliar");
+    bt.href = G.avaliacaoUrl;
+    bt.hidden = false;
+  }
   $("link-mapa").href = "https://www.openstreetmap.org/?mlat=" + G.campus.lat + "&mlon=" + G.campus.lon + "#map=17/" + G.campus.lat + "/" + G.campus.lon;
 
   // ---------- Elementos
@@ -117,7 +123,7 @@
   function renderChips() {
     const c = $("chips"); c.replaceChildren();
     ["Todos", ...G.eventos].forEach((ev) => {
-      const b = el("button", { type: "button", textContent: ev === "Todos" ? "Geral" : ev });
+      const b = el("button", { type: "button", className: "chip-" + slug(ev === "Todos" ? "Geral" : ev), textContent: ev === "Todos" ? "Geral" : ev });
       b.title = ev === "Todos" ? "Todas as atividades do dia" : G.eventosInfo[ev];
       b.setAttribute("aria-pressed", String(ev === estado.evento));
       b.addEventListener("click", () => { estado.evento = ev; renderTudo(); });
@@ -399,7 +405,7 @@
   function iniciarCapa() {
     const capa = $("capa");
     const pular = new URLSearchParams(location.search).get("capa") === "0";
-    if (pular || MARCAR) { capa.hidden = true; return; }
+    if (pular || MARCAR || location.hash === "#avaliar") { capa.hidden = true; return; }
     // Enquanto a capa está aberta, o resto do guia fica inacessível (toque, teclado e leitor de tela).
     const resto = ["agora", "abas", "conteudo", "rodape"].map((id) => $(id)).filter(Boolean);
     const topo = document.querySelector(".topo");
@@ -421,6 +427,222 @@
     entrar.focus();
   }
 
+  // ---------- Avaliação dentro do guia (mesmo desenho do PDF), enviada ao mesmo Google Forms
+  let avaliacaoAbriuPorHash = false;
+  function iniciarAvaliacao() {
+    const A = G.avaliacao;
+    const painel = $("avaliar");
+    const btn = $("btn-avaliar");
+    const envioOk = /^https:\/\/docs\.google\.com\/forms\/d\/e\/[\w-]+\/formResponse$/.test((A && A.envio) || "");
+    if (!A || !painel || !envioOk) return; // sem configuração: o botão continua levando ao Google Forms
+    const OUTRO = "__outro__";
+    const corpo = $("avaliar-corpo");
+    let naoUsou = false;
+
+    function perguntaEscolha(p) {
+      const caixas = p.tipo === "caixas";
+      const fs = el("fieldset", { className: "av-q" });
+      fs.append(el("legend", { textContent: p.titulo }));
+      if (p.ajuda) fs.append(el("p", { className: "av-ajuda", textContent: p.ajuda }));
+      const ops = el("div", { className: "av-ops" });
+      (p.outro ? p.opcoes.concat([OUTRO]) : p.opcoes).forEach((op) => {
+        const lab = el("label", { className: "av-op" });
+        const inp = el("input", { type: caixas ? "checkbox" : "radio", name: p.id, value: op });
+        lab.append(inp, el("span", { textContent: op === OUTRO ? "Outro:" : op }));
+        if (op === OUTRO) {
+          const t = el("input", { type: "text", className: "av-outro-txt", maxLength: 120 });
+          t.setAttribute("aria-label", "Escreva qual é o outro");
+          t.addEventListener("input", () => { if (t.value.trim()) inp.checked = true; });
+          lab.append(t);
+        }
+        ops.append(lab);
+      });
+      fs.append(ops);
+      return fs;
+    }
+    function perguntaEscala(p) {
+      const fs = el("fieldset", { className: "av-q" });
+      fs.append(el("legend", { textContent: p.titulo }));
+      const linha = el("div", { className: "av-escala" });
+      for (let n = 1; n <= 5; n++) {
+        const lab = el("label", { className: "av-n" });
+        lab.append(el("input", { type: "radio", name: p.id, value: String(n) }), el("span", { textContent: String(n) }));
+        linha.append(lab);
+      }
+      fs.append(linha, el("div", { className: "av-rotulos" }, el("span", { textContent: "1 · " + p.de }), el("span", { textContent: "5 · " + p.ate })));
+      return fs;
+    }
+    function perguntaGrade(p) {
+      const fs = el("fieldset", { className: "av-q" });
+      fs.append(el("legend", { textContent: p.titulo }));
+      if (p.ajuda) fs.append(el("p", { className: "av-ajuda", textContent: p.ajuda }));
+      const tab = el("table", { className: "av-grade" });
+      const cg = el("colgroup", {}, el("col"));
+      for (let n = 1; n <= 5; n++) cg.append(el("col", { className: "av-col-n" }));
+      const cab = el("tr", {}, el("th", { scope: "col" }));
+      cab.firstChild.className = "av-vazio";
+      for (let n = 1; n <= 5; n++) cab.append(el("th", { scope: "col", textContent: String(n) }));
+      tab.append(cg, el("thead", {}, cab));
+      const tb = el("tbody");
+      p.linhas.forEach((l) => {
+        const tr = el("tr", {}, el("th", { scope: "row", textContent: l.texto }));
+        for (let n = 1; n <= 5; n++) {
+          const lab = el("label", {});
+          const inp = el("input", { type: "radio", name: l.id, value: String(n) });
+          inp.setAttribute("aria-label", l.texto + " — nota " + n);
+          lab.append(inp, el("span", {}));
+          tr.append(el("td", {}, lab));
+        }
+        tb.append(tr);
+      });
+      tab.append(tb);
+      fs.append(tab);
+      return fs;
+    }
+    function perguntaTexto(p) {
+      const fs = el("fieldset", { className: "av-q" });
+      fs.append(el("legend", { textContent: p.titulo }));
+      const t = el("textarea", { name: p.id, rows: 2, maxLength: 600 });
+      t.setAttribute("aria-label", p.titulo);
+      fs.append(t);
+      return fs;
+    }
+    function montarTela() {
+      corpo.replaceChildren();
+      corpo.append(
+        el("h2", { id: "av-titulo", textContent: "Pesquisa rápida · Identidade IFTO 2026 e Guia Digital" }),
+        el("p", { className: "av-sub", textContent: "Campus Araguatins · 3 a 6 de novembro de 2026 · Leva cerca de 3 minutos" }),
+        el("p", { className: "av-aviso" }, el("strong", { textContent: "Anônima: " }),
+          "não pedimos nome, telefone nem e-mail. Suas respostas serão usadas só para melhorar o guia e para o relatório de um Projeto de Extensão, sem identificar ninguém. Toque nas opções e, se preferir, deixe em branco o que não quiser responder. Obrigado por participar!")
+      );
+      const form = el("form", { id: "avaliar-form", noValidate: true });
+      form.addEventListener("submit", (e) => { e.preventDefault(); enviar(); });
+      form.addEventListener("change", () => {
+        const q4 = form.querySelector('input[name="q4"]:checked');
+        naoUsou = !!q4 && q4.value === A.naoUsou;
+        form.querySelectorAll("[data-so-se-usou]").forEach((e) => { e.hidden = naoUsou; });
+      });
+      A.secoes.forEach((sec) => {
+        const s = el("section", { className: "av-secao" }, el("h3", { textContent: sec.titulo }));
+        sec.perguntas.forEach((p) => {
+          const f = p.tipo === "grade" ? perguntaGrade(p) : p.tipo === "escala" ? perguntaEscala(p)
+            : p.tipo === "texto" ? perguntaTexto(p) : perguntaEscolha(p);
+          if (p.soSeUsou) f.dataset.soSeUsou = "1";
+          s.append(f);
+        });
+        form.append(s);
+      });
+      const msg = el("p", { id: "av-msg", className: "av-msg", hidden: true });
+      msg.setAttribute("role", "alert");
+      const enviarBt = el("button", { type: "submit", id: "av-enviar", className: "av-enviar", textContent: "Enviar respostas" });
+      form.append(el("div", { className: "av-barra" }, msg, enviarBt));
+      corpo.append(form);
+      corpo.append(
+        el("p", { className: "av-alt" }, "Prefere responder no Google Forms? ",
+          el("a", { href: A.formulario, target: "_blank", rel: "noopener", textContent: "Abrir o formulário" })),
+        el("p", { className: "av-credito" }, "© 2026 Valdeci Lopes da Silva Filho.", el("br"), "Todos os direitos reservados.")
+      );
+    }
+    function montarEnvio() {
+      const form = $("avaliar-form");
+      const params = new URLSearchParams();
+      let total = 0;
+      A.secoes.forEach((sec) => sec.perguntas.forEach((p) => {
+        if (p.soSeUsou && naoUsou) return;
+        if (p.tipo === "grade") {
+          p.linhas.forEach((l) => {
+            const m = form.querySelector('input[name="' + l.id + '"]:checked');
+            if (m) { params.append("entry." + l.entry, m.value); total++; }
+          });
+        } else if (p.tipo === "texto") {
+          const t = form.querySelector('textarea[name="' + p.id + '"]').value.trim();
+          if (t) { params.append("entry." + p.entry, t); total++; }
+        } else {
+          const marcados = Array.from(form.querySelectorAll('input[name="' + p.id + '"]:checked'));
+          marcados.forEach((m) => {
+            if (m.value === OUTRO) {
+              const txt = m.closest("label").querySelector(".av-outro-txt").value.trim() || "Outro";
+              params.append("entry." + p.entry, "__other_option__");
+              params.append("entry." + p.entry + ".other_option_response", txt);
+            } else {
+              params.append("entry." + p.entry, m.value);
+            }
+          });
+          if (marcados.length) total++;
+        }
+      }));
+      params.append("pageHistory", naoUsou ? "0,1,3" : "0,1,2,3");
+      params.append("fvv", "1");
+      return { params, total };
+    }
+    function obrigado() {
+      corpo.replaceChildren(
+        el("div", { className: "av-obrigado" },
+          el("p", { className: "av-ok", textContent: "✔" }),
+          el("h2", { textContent: "Obrigado!" }),
+          el("p", { textContent: "Sua resposta ajuda a melhorar o guia e os próximos eventos." }),
+          (() => { const b = el("button", { type: "button", className: "av-enviar", textContent: "Voltar ao guia" }); b.addEventListener("click", fechar); return b; })()
+        ),
+        el("p", { className: "av-credito" }, "© 2026 Valdeci Lopes da Silva Filho.", el("br"), "Todos os direitos reservados.")
+      );
+      painel.scrollTop = 0;
+    }
+    async function enviar() {
+      const msg = $("av-msg");
+      const bt = $("av-enviar");
+      const { params, total } = montarEnvio();
+      if (!total) { msg.textContent = "Responda pelo menos uma pergunta para enviar."; msg.hidden = false; return; }
+      msg.hidden = true;
+      bt.disabled = true; bt.textContent = "Enviando…";
+      try {
+        await fetch(A.envio, { method: "POST", mode: "no-cors", body: params, keepalive: true });
+        obrigado();
+      } catch (e) {
+        bt.disabled = false; bt.textContent = "Enviar respostas";
+        msg.replaceChildren("Não consegui enviar. Verifique a internet e tente de novo, ou ",
+          el("a", { href: A.formulario, target: "_blank", rel: "noopener", textContent: "responda pelo formulário do Google" }), ".");
+        msg.hidden = false;
+      }
+    }
+
+    // abrir / fechar (o botão Voltar do celular também fecha)
+    const bloqueados = () => [document.querySelector(".topo"), $("agora"), $("abas"), $("conteudo"), $("rodape")].filter(Boolean);
+    function esconder() {
+      painel.hidden = true;
+      bloqueados().forEach((e) => { e.inert = false; });
+      document.body.classList.remove("com-avaliar");
+      document.removeEventListener("keydown", tecla);
+    }
+    function fechar() {
+      if (painel.hidden) return;
+      esconder();
+      if (location.hash === "#avaliar") {
+        if (avaliacaoAbriuPorHash) { history.replaceState(null, "", location.pathname + location.search); avaliacaoAbriuPorHash = false; }
+        else history.back();
+      }
+      btn.focus();
+    }
+    function tecla(e) { if (e.key === "Escape") fechar(); }
+    function abrir(porHash) {
+      montarTela();
+      naoUsou = false;
+      bloqueados().forEach((e) => { e.inert = true; });
+      document.body.classList.add("com-avaliar");
+      painel.hidden = false;
+      painel.scrollTop = 0;
+      document.addEventListener("keydown", tecla);
+      if (porHash) avaliacaoAbriuPorHash = true;
+      else if (location.hash !== "#avaliar") history.pushState({ av: 1 }, "", "#avaliar");
+      $("av-voltar").focus();
+    }
+    $("av-voltar").addEventListener("click", fechar);
+    window.addEventListener("popstate", () => { if (location.hash !== "#avaliar" && !painel.hidden) esconder(); });
+    btn.hidden = false;
+    btn.href = A.formulario;
+    btn.addEventListener("click", (e) => { e.preventDefault(); abrir(false); });
+    if (location.hash === "#avaliar") abrir(true);
+  }
+
   // ---------- Abas
   function trocarAba(nome) {
     ["programacao", "locais", "info", "agenda"].forEach((n) => {
@@ -439,5 +661,6 @@
   renderTudo();
   if (MARCAR) trocarAba("locais");
   renderInfo();
+  iniciarAvaliacao();
   iniciarCapa();
 })();

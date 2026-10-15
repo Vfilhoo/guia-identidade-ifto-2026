@@ -3,8 +3,8 @@
 // h = lista de intervalos [início, fim]; sala é opcional.
 
 window.GUIA = {
-  titulo: "Guia do Identidade IFTO 2026",
-  subtitulo: "Campus Araguatins · 3 a 6 de novembro",
+  titulo: "Identidade IFTO 2026",
+  subtitulo: "Araguatins · 3 a 6 de novembro",
   fonteUrl: "https://www.even3.com.br/identidade-ifto-2026-731602/",
   campus: { lat: -5.6449061, lon: -48.0721384 }, // coordenadas informadas na página oficial (aproximadas)
   dias: [
@@ -206,4 +206,67 @@ window.GUIA.info = {
   // Fotos do pôr do sol: coloque os arquivos em guia/fotos/ e liste aqui.
   // Exemplo: { arquivo: "por-do-sol-1.jpg", legenda: "Pôr do sol às margens do Araguaia", credito: "Nome de quem fez a foto" }
   fotos: []
+};
+
+// Link para RESPONDER o formulário de avaliação (Google Forms). Vazio = o botão "Avaliar o guia" fica escondido.
+// Use o link de resposta (começa com https://docs.google.com/forms/d/e/ ... /viewform), nunca o de edição.
+window.GUIA.avaliacaoUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdWm-x0B0EJhckG2123S2BLdKUlthQTwx34u1RJOD1qg7_QSA/viewform";
+
+// ---------------------------------------------------------------------------
+// Questionário de avaliação DENTRO do guia (mesmo desenho do PDF impresso).
+// As respostas são enviadas ao mesmo Google Forms (e à mesma planilha). "entry" = código da pergunta no formulário.
+// Se o formulário for recriado, os códigos mudam: veja planejamento/forms_entradas.json.
+window.GUIA.avaliacao = {
+  formulario: "https://docs.google.com/forms/d/e/1FAIpQLSdWm-x0B0EJhckG2123S2BLdKUlthQTwx34u1RJOD1qg7_QSA/viewform",
+  envio: "https://docs.google.com/forms/d/e/1FAIpQLSdWm-x0B0EJhckG2123S2BLdKUlthQTwx34u1RJOD1qg7_QSA/formResponse",
+  // Quem marcar esta opção na pergunta 4 pula as perguntas marcadas com soSeUsou (como no formulário).
+  naoUsou: "Não usei o guia",
+  secoes: [
+    {
+      titulo: "1. Sobre você",
+      perguntas: [
+        { id: "q1", entry: 385871738, tipo: "escolha", titulo: "1. Você é:",
+          opcoes: ["Estudante do IFTO de outro campus", "Estudante do Campus Araguatins", "Servidor(a) do IFTO", "Visitante / comunidade externa"], outro: true },
+        { id: "q2", entry: 1212131701, tipo: "escolha", titulo: "2. É a sua primeira vez no Campus Araguatins?", opcoes: ["Sim", "Não"] },
+        { id: "q3", entry: 1973165963, tipo: "caixas", titulo: "3. De quais partes do Identidade você participou?", ajuda: "Pode marcar mais de uma.",
+          opcoes: ["JICE", "IFestival", "AfroIdentidade", "Integra", "Abertura / encerramento", "Só assisti ou visitei"] }
+      ]
+    },
+    {
+      titulo: "2. O guia digital (QR Code)",
+      perguntas: [
+        { id: "q4", entry: 1126777597, tipo: "escolha", titulo: "4. Como você chegou ao guia?",
+          opcoes: ["QR Code no cartaz", "Link enviado por colega ou grupo", "Rede social", "Outro", "Não usei o guia"] },
+        { id: "q5", entry: 2039153833, tipo: "caixas", soSeUsou: true, titulo: "5. O que você usou no guia?", ajuda: "Pode marcar mais de uma.",
+          opcoes: ["Programação", "Locais e mapa", "Informações (comida, farmácias, táxi)", "Minha agenda"] },
+        { id: "q6", tipo: "grade", soSeUsou: true, titulo: "6. Quanto você concorda com cada frase?", ajuda: "1 = discordo totalmente · 5 = concordo totalmente",
+          linhas: [
+            { id: "q6a", entry: 31493865, texto: "a) Foi fácil encontrar as atividades que eu queria." },
+            { id: "q6b", entry: 2090859754, texto: "b) O mapa me ajudou a chegar aos locais." },
+            { id: "q6c", entry: 1062115368, texto: "c) Os horários e as salas estavam corretos." },
+            { id: "q6d", entry: 1573722626, texto: "d) As informações de alimentação, farmácias e transporte foram úteis." },
+            { id: "q6e", entry: 1372278402, texto: "e) O guia abriu rápido e foi fácil de usar no celular." },
+            { id: "q6f", entry: 1029838484, texto: "f) O guia me ajudou a conhecer o campus." },
+            { id: "q6g", entry: 1332051419, texto: "g) Eu recomendaria o guia a outros participantes." }
+          ] },
+        { id: "q7", entry: 223527640, tipo: "escolha", soSeUsou: true, titulo: "7. Sem o guia, você teria dificuldade para se organizar no evento?",
+          opcoes: ["Muita", "Alguma", "Pouca", "Nenhuma"] },
+        { id: "q8", entry: 804050426, tipo: "escala", soSeUsou: true, titulo: "8. De 1 a 5, qual nota você dá ao guia?", de: "Péssimo", ate: "Excelente" },
+        { id: "q9", entry: 110224258, tipo: "texto", soSeUsou: true, titulo: "9. Teve algum problema ao usar o guia (erro, informação errada, dificuldade)? Qual?" },
+        { id: "q10", entry: 1622182438, tipo: "texto", soSeUsou: true, titulo: "10. O que você mais gostou no guia e o que mudaria ou acrescentaria?" }
+      ]
+    },
+    {
+      titulo: "3. O Identidade IFTO 2026",
+      perguntas: [
+        { id: "q11", entry: 787981941, tipo: "escolha", titulo: "11. Você conseguiu participar das atividades que queria?",
+          opcoes: ["Todas", "A maioria", "Algumas", "Poucas ou nenhuma"] },
+        { id: "q12", entry: 619711542, tipo: "caixas", titulo: "12. Se perdeu alguma atividade, qual foi o motivo?", ajuda: "Pode marcar mais de uma.",
+          opcoes: ["Choque de horários", "Não achei o local", "Não sabia que existia", "Cansaço ou outros compromissos"], outro: true },
+        { id: "q13", entry: 60135327, tipo: "escala", titulo: "13. Como você avalia a divulgação da programação do evento, antes e durante?", de: "Muito ruim", ate: "Muito boa" },
+        { id: "q14", entry: 1228915718, tipo: "texto", titulo: "14. O que você mais gostou no Identidade IFTO 2026?" },
+        { id: "q15", entry: 817117115, tipo: "texto", titulo: "15. Sugestões para as próximas edições:" }
+      ]
+    }
+  ]
 };

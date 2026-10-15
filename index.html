@@ -8,47 +8,33 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+  <link rel="preload" as="image" href="capa.webp" type="image/webp" fetchpriority="high">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arimo:wght@700&family=Fredoka:wght@500;600&family=Source+Sans+3:wght@400;600;700&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <section id="capa" class="capa" role="dialog" aria-modal="true" aria-labelledby="capa-titulo">
-    <div class="capa-conteudo">
-      <p class="capa-pre">GUIA DO PARTICIPANTE</p>
-      <p class="capa-nome" id="capa-titulo">IDENTIDADE <span>IFTO</span> 2026</p>
-      <hr class="capa-linha">
-      <p class="capa-data">3 A 6 DE NOVEMBRO</p>
-      <p class="capa-local">ARAGUATINS - TO</p>
-      <p class="capa-eventos">JICE · IFestival · AfroIdentidade · Integra</p>
-      <button type="button" id="capa-entrar" class="capa-botao">Abrir o guia</button>
-    </div>
-    <svg class="capa-arte" viewBox="0 0 400 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
-      <defs>
-        <linearGradient id="ceu" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#fff1d6" stop-opacity="0"/>
-          <stop offset=".45" stop-color="#ffd9a0"/>
-          <stop offset=".8" stop-color="#ff9f6b"/>
-          <stop offset="1" stop-color="#e8605a"/>
-        </linearGradient>
-      </defs>
-      <rect y="40" width="400" height="260" fill="url(#ceu)"/>
-      <circle cx="292" cy="168" r="38" fill="#fff6dc"/>
-      <g fill="none" stroke-linecap="round">
-        <path d="M-10 214 C 70 168, 150 262, 250 206 S 372 186, 412 216" stroke="#2f9e41" stroke-width="15"/>
-        <path d="M-10 238 C 80 190, 160 282, 262 230 S 378 210, 412 240" stroke="#f28c28" stroke-width="13"/>
-        <path d="M-10 260 C 90 214, 170 300, 272 252 S 384 234, 412 262" stroke="#f5c518" stroke-width="11"/>
-        <path d="M-10 280 C 100 238, 180 314, 282 272 S 390 256, 412 282" stroke="#2aa0d6" stroke-width="10"/>
-      </g>
-    </svg>
-    <div class="capa-rodape">
-      <p>Guia não oficial · Projeto de Extensão · Unopar Araguatins</p>
-      <p class="capa-autor">© 2026 Valdeci Lopes da Silva Filho</p>
+  <section id="capa" class="capa" role="dialog" aria-modal="true" aria-label="Capa do Guia do Participante do Identidade IFTO 2026">
+    <div class="capa-quadro">
+      <img class="capa-img" src="capa.webp" width="1080" height="1920" fetchpriority="high" decoding="async"
+           alt="Guia do Participante. Identidade IFTO 2026, com Ciência Delas, JICE, IFestival, AfroIdentidade e Integra. De 3 a 6 de novembro, Campus Araguatins.">
+      <button type="button" id="capa-entrar" class="capa-hit" aria-label="Abrir o guia"></button>
+      <div class="capa-credito">
+        <p>Guia não oficial · Projeto de Extensão · Unopar Araguatins</p>
+        <p class="capa-autor">© 2026 Valdeci Lopes da Silva Filho</p>
+      </div>
     </div>
   </section>
 
   <header class="topo">
-    <h1 id="titulo"></h1>
-    <p id="subtitulo"></p>
+    <div class="topo-arte" aria-hidden="true"></div>
+    <div class="topo-corpo">
+      <p class="topo-pre">Guia do participante</p>
+      <h1 id="titulo"></h1>
+      <div class="topo-linha">
+        <p id="subtitulo"></p>
+        <a id="btn-avaliar" class="btn-avaliar" target="_blank" rel="noopener" hidden>★ Avaliar o guia</a>
+      </div>
+    </div>
   </header>
 
   <section id="agora" class="agora" aria-live="polite"></section>
@@ -127,6 +113,13 @@
     A programação oficial está no <a id="link-fonte" target="_blank" rel="noopener">Even3 do evento</a>; em caso de diferença, vale a oficial.</p>
     <p class="rodape-autor">© 2026 Valdeci Lopes da Silva Filho.<br>Todos os direitos reservados.</p>
   </footer>
+
+
+  <!-- Avaliação dentro do guia (aberta pelo botão "Avaliar o guia") -->
+  <section id="avaliar" class="painel-avaliar" role="dialog" aria-modal="true" aria-labelledby="av-titulo" hidden>
+    <div class="av-topo"><button type="button" id="av-voltar" class="av-voltar">← Voltar ao guia</button></div>
+    <div id="avaliar-corpo" class="av-conteudo"></div>
+  </section>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
   <script src="dados.js"></script>
