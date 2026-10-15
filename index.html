@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Guia não oficial do Identidade IFTO 2026 no Campus Araguatins: programação, locais e sua agenda.">
+  <title>Guia Identidade IFTO 2026 · Araguatins</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <section id="capa" class="capa" role="dialog" aria-modal="true" aria-labelledby="capa-titulo">
+    <div class="capa-conteudo">
+      <p class="capa-pre">GUIA DO PARTICIPANTE</p>
+      <p class="capa-nome" id="capa-titulo">IDENTIDADE <span>IFTO</span> 2026</p>
+      <hr class="capa-linha">
+      <p class="capa-data">3 A 6 DE NOVEMBRO</p>
+      <p class="capa-local">ARAGUATINS - TO</p>
+      <p class="capa-eventos">JICE · IFestival · AfroIdentidade · Integra</p>
+      <button type="button" id="capa-entrar" class="capa-botao">Abrir o guia</button>
+    </div>
+    <svg class="capa-arte" viewBox="0 0 400 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="ceu" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#fff1d6" stop-opacity="0"/>
+          <stop offset=".45" stop-color="#ffd9a0"/>
+          <stop offset=".8" stop-color="#ff9f6b"/>
+          <stop offset="1" stop-color="#e8605a"/>
+        </linearGradient>
+      </defs>
+      <rect y="40" width="400" height="260" fill="url(#ceu)"/>
+      <circle cx="292" cy="168" r="38" fill="#fff6dc"/>
+      <g fill="none" stroke-linecap="round">
+        <path d="M-10 214 C 70 168, 150 262, 250 206 S 372 186, 412 216" stroke="#2f9e41" stroke-width="15"/>
+        <path d="M-10 238 C 80 190, 160 282, 262 230 S 378 210, 412 240" stroke="#f28c28" stroke-width="13"/>
+        <path d="M-10 260 C 90 214, 170 300, 272 252 S 384 234, 412 262" stroke="#f5c518" stroke-width="11"/>
+        <path d="M-10 280 C 100 238, 180 314, 282 272 S 390 256, 412 282" stroke="#2aa0d6" stroke-width="10"/>
+      </g>
+    </svg>
+    <div class="capa-rodape">
+      <p>Guia não oficial · Projeto de Extensão · Unopar Araguatins</p>
+      <p class="capa-autor">© 2026 Valdeci Lopes da Silva Filho</p>
+    </div>
+  </section>
+
+  <header class="topo">
+    <h1 id="titulo"></h1>
+    <p id="subtitulo"></p>
+  </header>
+
+  <section id="agora" class="agora" aria-live="polite"></section>
+
+  <nav id="abas" class="abas" role="tablist" aria-label="Seções do guia">
+    <button role="tab" id="aba-programacao" data-aba="programacao" aria-selected="true">Programação</button>
+    <button role="tab" id="aba-locais" data-aba="locais" aria-selected="false">Locais</button>
+    <button role="tab" id="aba-info" data-aba="info" aria-selected="false">Informações</button>
+    <button role="tab" id="aba-agenda" data-aba="agenda" aria-selected="false">Agenda <span id="contador" class="contador" hidden>0</span></button>
+  </nav>
+
+  <main id="conteudo">
+    <!-- Programação -->
+    <section id="painel-programacao" role="tabpanel" aria-labelledby="aba-programacao">
+      <div class="dias" id="dias" role="group" aria-label="Escolha o dia"></div>
+
+      <div class="filtros">
+        <label class="busca">
+          <span class="sr">Buscar atividade ou local</span>
+          <input id="busca" type="search" placeholder="Buscar atividade, sala ou local" autocomplete="off">
+        </label>
+        <div class="chips" id="chips" role="group" aria-label="Filtrar por evento"></div>
+        <label class="seletor">
+          <span>Local</span>
+          <select id="filtro-local"></select>
+        </label>
+      </div>
+
+      <p id="resumo" class="resumo" aria-live="polite"></p>
+      <ul id="lista" class="lista"></ul>
+    </section>
+
+    <!-- Locais -->
+    <section id="painel-locais" role="tabpanel" aria-labelledby="aba-locais" hidden>
+      <div id="marcador" class="marcador" hidden>
+        <h3>Modo marcação</h3>
+        <ol>
+          <li>Escolha o local na lista.</li>
+          <li>Toque no mapa exatamente em cima do prédio (use "Satélite" no canto do mapa) <strong>ou</strong>, se estiver no local, toque em "Usar minha localização".</li>
+          <li>Repita para todos. Depois toque em "Copiar" e envie o texto.</li>
+        </ol>
+        <label class="seletor"><span>Local a marcar</span><select id="marc-local"></select></label>
+        <button type="button" id="marc-gps">Usar minha localização agora</button>
+        <p id="marc-status" class="nota" aria-live="polite"></p>
+        <textarea id="marc-json" rows="9" readonly aria-label="Coordenadas marcadas"></textarea>
+        <div class="acoes"><button type="button" id="marc-copiar">Copiar</button><button type="button" id="marc-limpar">Limpar marcações</button></div>
+      </div>
+      <h2>Onde fica</h2>
+      <div id="mapa" class="mapa" role="img" aria-label="Mapa com a localização do campus"></div>
+      <p class="nota">Pontos dos locais marcados pela equipe do guia; o ponto do campus é aproximado, conforme a página oficial do evento.
+        <a id="link-mapa" target="_blank" rel="noopener">Abrir no aplicativo de mapas</a></p>
+      <ul id="lista-locais" class="locais"></ul>
+    </section>
+
+    <!-- Informações -->
+    <section id="painel-info" role="tabpanel" aria-labelledby="aba-info" hidden>
+      <h2>Informações úteis</h2>
+      <p class="nota" id="info-aviso"></p>
+      <label class="busca">
+        <span class="sr">Buscar nas informações</span>
+        <input id="busca-info" type="search" placeholder="Buscar: pizza, farmácia, táxi…" autocomplete="off">
+      </label>
+      <div id="info-conteudo" class="info"></div>
+    </section>
+
+    <!-- Minha agenda -->
+    <section id="painel-agenda" role="tabpanel" aria-labelledby="aba-agenda" hidden>
+      <h2>Minha agenda</h2>
+      <p class="nota">Toque na estrela de uma atividade para salvá-la aqui. Fica guardada neste aparelho.</p>
+      <ul id="lista-agenda" class="lista"></ul>
+    </section>
+  </main>
+
+  <footer id="rodape" class="rodape">
+    <p><strong>Guia não oficial.</strong> Elaborado como Projeto de Extensão do curso de Engenharia de Software (Unopar Araguatins) para facilitar a visita ao Campus Araguatins do IFTO.
+    A programação oficial está no <a id="link-fonte" target="_blank" rel="noopener">Even3 do evento</a>; em caso de diferença, vale a oficial.</p>
+    <p class="rodape-autor">© 2026 Valdeci Lopes da Silva Filho.<br>Todos os direitos reservados.</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+  <script src="dados.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
