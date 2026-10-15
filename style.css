@@ -208,8 +208,9 @@ main h2 { text-transform: uppercase; letter-spacing: .01em; color: #000; }
 /* ---------- Rodapé: onda bege como na capa ---------- */
 .rodape { margin-top: 18px; padding: 22px 16px 30px; font-size: .8rem; color: #4a4a4a; background: var(--bege-claro); border-radius: 28px 28px 0 0; }
 .rodape > * { max-width: 760px; margin-left: auto; margin-right: auto; }
+.rodape a { color: var(--teal-esc); font-weight: 600; }
 .rodape > p:first-child { margin-bottom: 0; }
-.rodape .rodape-autor { margin-top: 1px; text-align: center; font-weight: 600; line-height: 1.2; }
+.rodape .rodape-autor { margin: 1px 0 0; text-align: center; font-weight: 600; line-height: 1.2; }
 
 /* ---------- Capa (a imagem inteira, com o botão clicável por cima) ---------- */
 body.com-capa { overflow: hidden; }

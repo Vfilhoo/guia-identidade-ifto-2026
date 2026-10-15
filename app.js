@@ -47,7 +47,6 @@
   // ---------- Cabeçalho e rodapé
   $("titulo").textContent = G.titulo;
   $("subtitulo").textContent = G.subtitulo;
-  $("link-fonte").href = G.fonteUrl;
   // Botão "Avaliar o guia": só aparece se houver um link seguro (https) de formulário configurado.
   if (/^https:\/\/(docs\.google\.com\/forms|forms\.gle)\//.test(G.avaliacaoUrl || "")) {
     const bt = $("btn-avaliar");
